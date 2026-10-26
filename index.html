@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070f">
+<title>CARWAY TRAFFIC — 3D Endless Traffic Runner</title>
+<link rel="stylesheet" href="./css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+  <!-- Portrait 9:16 shell: centers the game on desktop, fullscreen on phones -->
+  <div id="game-shell">
+    <div id="game-container">
+      <!-- HUD -->
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="hud-stat"><span class="hud-label">DIST</span><span id="hud-dist">0 m</span></div>
+          <div class="hud-stat"><span class="hud-label">SCORE</span><span id="hud-score">0</span></div>
+          <div class="hud-stat"><span class="hud-label">SPEED</span><span id="hud-speed">0</span></div>
+          <div class="hud-stat coin"><span class="hud-label"><span class="coin-dot"></span></span><span id="hud-coins">0</span></div>
+        </div>
+        <div id="hud-badges"></div>
+        <div id="chase-banner" class="hidden"></div>
+        <div id="boost-wrap" title="Nitro">
+          <div id="boost-fill"></div>
+          <span id="boost-label">NITRO</span>
+        </div>
+        <div id="jump-wrap" title="Jump energy">
+          <div id="jump-fill"></div>
+          <span id="jump-label">JUMP</span>
+        </div>
+        <div class="hud-buttons">
+          <button id="btn-pause" class="icon-btn" aria-label="Pause">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg>
+          </button>
+          <button id="btn-mute" class="icon-btn" aria-label="Mute">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><path class="wav" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="wav" d="M18 6a8.5 8.5 0 0 1 0 12"/><line class="mute-x" x1="15" y1="9" x2="21" y2="15"/><line class="mute-x" x1="21" y1="9" x2="15" y2="15"/></svg>
+          </button>
+        </div>
+        <div id="hud-toast"></div>
+        <div id="hud-fps">60 fps</div>
+      </div>
+
+      <!-- Nitro button (above the jump button) -->
+      <button id="btn-nitro" class="nitro-btn hidden" aria-label="Nitro boost">NITRO</button>
+
+      <!-- Touch controls -->
+      <div id="touch-controls" class="hidden">
+        <button id="btn-left" class="touch-btn" aria-label="Steer left">◀</button>
+        <button id="btn-jump" class="touch-btn jump" aria-label="Jump">▲</button>
+        <button id="btn-right" class="touch-btn" aria-label="Steer right">▶</button>
+      </div>
+
+      <!-- Lobby: minimal chrome over the 3D roadside-garage scene -->
+      <div id="start-screen" class="overlay lobby">
+        <div class="lobby-topbar">
+          <button id="btn-nav" class="icon-btn" aria-label="Open menu">☰</button>
+          <div class="lobby-chips">
+            <p id="best-line">BEST: 0</p>
+            <p id="menu-coins"><span class="coin-dot"></span> <span id="menu-coins-val">0</span></p>
+          </div>
+          <button id="btn-settings" class="icon-btn" aria-label="Settings">⚙</button>
+        </div>
+        <div class="lobby-word">CARWAY<span> TRAFFIC</span></div>
+        <div id="nav-backdrop" class="hidden"></div>
+        <nav id="nav-drawer" aria-label="Main menu">
+          <div class="nav-head">
+            <img class="nav-logo" src="./assets/yf-logo.png" alt="YF">
+            <span>CARWAY</span>
+          </div>
+          <button id="btn-garage" class="nav-btn"><span class="menu-ico">🚗</span>GARAGE</button>
+          <button id="btn-upgrades" class="nav-btn"><span class="menu-ico">⬆</span>UPGRADES</button>
+          <button id="btn-missions" class="nav-btn"><span class="menu-ico">★</span>MISSIONS</button>
+        </nav>
+        <div class="play-dock">
+          <button id="btn-start" class="big-btn play-btn">▶ &nbsp;PLAY</button>
+          <p class="hint-line">◀ ▶ steer &nbsp;•&nbsp; ▲ jump &nbsp;•&nbsp; NITRO for boost</p>
+        </div>
+      </div>
+
+      <!-- Garage -->
+      <div id="garage-screen" class="overlay garage hidden">
+        <div class="panel garage-panel">
+          <button id="btn-garage-back" class="back-circle" aria-label="Back">←</button>
+          <h1>GARAGE</h1>
+          <p id="garage-coins"><span class="coin-dot"></span> <span id="garage-coins-val">0</span></p>
+          <div class="tab-bar" role="tablist">
+            <button id="btn-garage-tab-paint" class="tab-btn active" role="tab">PAINT</button>
+            <button id="btn-garage-tab-cars" class="tab-btn" role="tab">CARS</button>
+          </div>
+          <div id="garage-paint-section">
+            <h2 class="garage-sub">PAINT</h2>
+            <div id="paint-list"></div>
+          </div>
+          <div id="garage-cars-section" class="hidden">
+            <h2 class="garage-sub">CARS</h2>
+            <div id="car-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upgrades: power-up progression (bottom sheet over the lobby scene) -->
+      <div id="upgrades-screen" class="overlay sheet hidden">
+        <div class="panel sheet-panel">
+          <h1>UPGRADES</h1>
+          <p id="upgrades-coins"><span class="coin-dot"></span> <span id="upgrades-coins-val">0</span></p>
+          <div id="upgrades-list"></div>
+          <button id="btn-upgrades-back" class="ghost-btn">← BACK</button>
+        </div>
+      </div>
+
+      <!-- Missions (bottom sheet over the lobby scene) -->
+      <div id="missions-screen" class="overlay sheet hidden">
+        <div class="panel sheet-panel">
+          <button id="btn-missions-back" class="back-circle" aria-label="Back">←</button>
+          <h1>MISSIONS</h1>
+          <div id="missions-list"></div>
+        </div>
+      </div>
+
+      <!-- Settings (bottom sheet over the lobby scene) -->
+      <div id="settings-screen" class="overlay sheet hidden">
+        <div class="panel sheet-panel">
+          <h1>SETTINGS</h1>
+          <div class="settings">
+            <label class="vol-row"><span>MUSIC</span><input id="set-music" type="range" min="0" max="100" value="55"></label>
+            <label class="vol-row"><span>SOUND</span><input id="set-sfx" type="range" min="0" max="100" value="90"></label>
+            <div class="settings-row">
+              <button id="btn-mute-settings" class="ghost-btn small">🔊 SOUND ON</button>
+              <button id="btn-quality-settings" class="ghost-btn small">QUALITY: <span class="quality-label">HIGH</span></button>
+            </div>
+            <button id="btn-reset" class="ghost-btn danger">RESET PROGRESS</button>
+            <p id="reset-note">Erases coins, cars, paints, missions, upgrades and best score. Quality and volume are kept.</p>
+          </div>
+          <button id="btn-settings-back" class="ghost-btn">← BACK</button>
+        </div>
+      </div>
+
+      <!-- Game over screen -->
+      <div id="gameover-screen" class="overlay hidden">
+        <div class="panel">
+          <h1 class="crash-title" id="crash-title">CRASH!</h1>
+          <div class="results">
+            <div><span>DISTANCE</span><b id="over-dist">0 m</b></div>
+            <div><span>SCORE</span><b id="over-score">0</b></div>
+            <div><span>COINS</span><b id="over-coins">+0</b></div>
+            <div><span>BEST</span><b id="over-best">0</b></div>
+            <div id="newbest" class="hidden">★ NEW BEST! ★</div>
+            <div id="over-missions" class="hidden"></div>
+          </div>
+          <button id="btn-restart" class="big-btn">↻ &nbsp;RESTART</button>
+          <button id="btn-menu" class="ghost-btn">Main menu</button>
+        </div>
+      </div>
+
+      <!-- Pause screen -->
+      <div id="pause-screen" class="overlay hidden">
+        <div class="panel">
+          <h1>PAUSED</h1>
+          <div class="settings">
+            <label class="vol-row"><span>MUSIC</span><input id="vol-music" type="range" min="0" max="100" value="55"></label>
+            <label class="vol-row"><span>SOUND</span><input id="vol-sfx" type="range" min="0" max="100" value="90"></label>
+            <button id="btn-quality" class="ghost-btn small">QUALITY: <span class="quality-label">HIGH</span></button>
+          </div>
+          <button id="btn-resume" class="big-btn">▶ &nbsp;RESUME</button>
+          <button id="btn-quit" class="ghost-btn">Restart run</button>
+          <button id="btn-menu2" class="ghost-btn">Main menu</button>
+        </div>
+      </div>
+
+      <!-- Brand intro: YF monogram reveal (~2.4 s, tap to skip) -->
+      <div id="intro-screen">
+        <div class="intro-inner">
+          <img id="intro-logo" src="./assets/yf-logo.png" alt="YF — Carway">
+          <div class="intro-word">CARWAY TRAFFIC</div>
+          <div class="intro-sub">3D ENDLESS TRAFFIC RUNNER</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+/* CARWAY TRAFFIC — portrait-first mobile styling (9:16 where supported) */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: radial-gradient(120% 100% at 50% 0%, #0b1024 0%, #05070f 55%, #020306 100%);
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color: #eaf2ff;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+body { display: flex; align-items: center; justify-content: center; }
+
+/* Portrait shell: max width = 9:16 of viewport height. Fullscreen on phones. */
+#game-shell {
+  width: min(100vw, 56.25vh);
+  height: 100dvh;
+  max-height: 100dvh;
+  position: relative;
+  box-shadow: 0 0 80px rgba(0, 229, 255, 0.12), 0 0 0 1px rgba(0,229,255,.15);
+  background: #05070f;
+}
+@supports not (height: 100dvh) { #game-shell { height: 100vh; } }
+
+@media (min-aspect-ratio: 9/16) {
+  /* Desktop / landscape: keep the portrait stage, round the corners */
+  #game-shell { border-radius: 18px; height: min(100dvh - 24px, 177.78vw); }
+}
+
+#game-container { position: absolute; inset: 0; overflow: hidden; }
+#game-container canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.hidden { display: none !important; }
+
+.hud-top {
+  position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 10px; right: 76px;
+  display: flex; gap: 8px;
+}
+.hud-stat {
+  flex: 1;
+  background: rgba(5, 10, 24, 0.62);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: 12px;
+  padding: 6px 4px 5px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+.hud-label { display: block; font-size: 10px; letter-spacing: 2px; color: #7ddcff; opacity: .85; }
+.hud-stat span:last-child { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.hud-buttons { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 10px; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 12px; font-size: 18px;
+  background: rgba(5, 10, 24, 0.62); color: #eaf2ff;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+}
+.icon-btn:active { transform: scale(.93); background: rgba(0,229,255,.25); }
+.icon-btn svg { display: block; margin: auto; }
+#btn-mute .mute-x { display: none; }
+#btn-mute.muted .wav { display: none; }
+#btn-mute.muted .mute-x { display: block; }
+
+#hud-toast {
+  position: absolute; top: 22%; width: 100%; text-align: center;
+  font-size: 26px; font-weight: 900; letter-spacing: 1px;
+  color: #ffe14d; text-shadow: 0 0 18px rgba(255, 200, 0, .8), 0 2px 0 #000;
+  opacity: 0; transition: opacity .25s;
+}
+#hud-toast.show { opacity: 1; }
+#hud-fps {
+  position: absolute; bottom: 118px; left: 10px; font-size: 11px; opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Touch controls ---------- */
+#touch-controls {
+  position: absolute; left: 0; right: 0; bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 0 16px; z-index: 6; pointer-events: none;
+}
+.touch-btn {
+  pointer-events: auto;
+  width: 76px; height: 76px; border-radius: 50%;
+  font-size: 26px; color: #eaf2ff;
+  background: rgba(5, 12, 28, 0.55);
+  border: 2px solid rgba(0, 229, 255, 0.5);
+  backdrop-filter: blur(4px);
+  touch-action: none;
+}
+.touch-btn.jump { width: 88px; height: 88px; border-color: rgba(255, 225, 77, .6); font-size: 30px; }
+.touch-btn:active { background: rgba(0, 229, 255, 0.35); transform: scale(.94); }
+.touch-btn.jump:active { background: rgba(255, 225, 77, .35); }
+
+/* ---------- Overlays ---------- */
+.overlay {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(2, 4, 10, 0.72);
+  backdrop-filter: blur(6px);
+  padding: 20px;
+}
+.panel {
+  width: 100%; max-width: 340px; text-align: center;
+  background: linear-gradient(180deg, rgba(10, 18, 40, .95), rgba(6, 10, 26, .95));
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 20px;
+  padding: 28px 22px;
+  box-shadow: 0 0 50px rgba(0, 229, 255, 0.15);
+}
+.logo { font-size: 38px; font-weight: 900; letter-spacing: 2px; color: #fff;
+  text-shadow: 0 0 24px rgba(0,229,255,.9); }
+.logo span { color: #00e5ff; }
+.tagline { margin-top: 4px; font-size: 12px; letter-spacing: 4px; color: #7ddcff; }
+.howto { margin: 18px 0; font-size: 14px; line-height: 2; color: #c4d6f5; }
+.big-btn {
+  width: 100%; padding: 15px; font-size: 18px; font-weight: 800; letter-spacing: 1px;
+  color: #02131a; background: linear-gradient(180deg, #4df3ff, #00c8e5);
+  border: none; border-radius: 14px; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 229, 255, .45);
+}
+.big-btn:active { transform: scale(.97); }
+.ghost-btn {
+  margin-top: 10px; width: 100%; padding: 11px; font-size: 14px;
+  color: #9fd8ff; background: transparent; border: 1px solid rgba(0,229,255,.3);
+  border-radius: 12px; cursor: pointer;
+}
+.ghost-btn.small { padding: 8px; font-size: 12px; letter-spacing: 1px; }
+.settings { margin: 4px 0 14px; display: grid; gap: 10px; }
+.vol-row { display: flex; align-items: center; gap: 12px; font-size: 12px; letter-spacing: 2px; color: #7ddcff; }
+.vol-row input[type="range"] { flex: 1; accent-color: #00e5ff; height: 28px; }
+#best-line { margin-top: 14px; font-size: 14px; letter-spacing: 2px; color: #ffe14d; }
+.crash-title { color: #ff5d5d; text-shadow: 0 0 22px rgba(255,60,60,.8); font-size: 34px; }
+.results { margin: 16px 0 20px; display: grid; gap: 8px; }
+.results div { display: flex; justify-content: space-between; font-size: 15px; color: #9fb4d8; }
+.results b { color: #fff; font-variant-numeric: tabular-nums; }
+#newbest { justify-content: center !important; color: #ffe14d !important; font-weight: 900;
+  animation: pulse 0.8s infinite alternate; }
+@keyframes pulse { from { opacity: .6; transform: scale(.97);} to { opacity: 1; transform: scale(1.03);} }
+.panel h1 { font-size: 28px; margin-bottom: 14px; }
+
+/* ---------- Phase 3: coins, nitro, garage, missions ---------- */
+.overlay .panel { max-height: 94dvh; overflow-y: auto; }
+
+.coin-dot {
+  display: inline-block; width: 13px; height: 13px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe27a, #f5a623 70%);
+  border: 1px solid #8a5a00; vertical-align: -1px;
+}
+.hud-top { right: 66px; gap: 6px; }
+.hud-stat { padding: 5px 2px 4px; }
+.hud-stat span:last-child { font-size: 16px; }
+
+#boost-wrap {
+  position: absolute; top: calc(74px + env(safe-area-inset-top)); left: 10px; right: 66px;
+  height: 18px; border-radius: 10px; overflow: hidden;
+  background: rgba(5, 10, 24, 0.62);
+  border: 1px solid rgba(0, 150, 255, 0.45);
+}
+#boost-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #0055ff, #33ccff);
+  transition: width 0.12s linear;
+}
+#boost-fill.active { background: linear-gradient(90deg, #33ccff, #ccf4ff); box-shadow: 0 0 14px #33ccff; }
+#boost-label {
+  position: absolute; inset: 0; text-align: center; font-size: 10px; font-weight: 800;
+  letter-spacing: 3px; line-height: 17px; color: #eaf6ff; text-shadow: 0 1px 2px #000;
+}
+
+/* Jump energy bar: same look as nitro, gold to match the jump button. */
+#jump-wrap {
+  position: absolute; top: calc(96px + env(safe-area-inset-top)); left: 10px; right: 66px;
+  height: 18px; border-radius: 10px; overflow: hidden;
+  background: rgba(5, 10, 24, 0.62);
+  border: 1px solid rgba(255, 200, 60, 0.45);
+}
+#jump-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #f5a623, #ffe27a);
+  transition: width 0.12s linear;
+}
+#jump-fill.low { background: linear-gradient(90deg, #a02323, #ff5a5a); }
+#jump-fill.full { background: linear-gradient(90deg, #ffe27a, #fff7d6); box-shadow: 0 0 14px #ffd257; }
+#jump-label {
+  position: absolute; inset: 0; text-align: center; font-size: 10px; font-weight: 800;
+  letter-spacing: 3px; line-height: 17px; color: #fff3d6; text-shadow: 0 1px 2px #000;
+}
+/* Jump button dims whenever jumping is unavailable (airborne / low meter). */
+.touch-btn.jump.depleted { opacity: 0.45; border-color: rgba(255, 225, 77, 0.25); }
+
+.nitro-btn {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(112px + env(safe-area-inset-bottom)); z-index: 6;
+  padding: 10px 26px; border-radius: 999px;
+  font-size: 15px; font-weight: 900; letter-spacing: 2px; color: #9fd8ff;
+  background: rgba(5, 12, 28, 0.55);
+  border: 2px solid rgba(0, 120, 255, 0.4);
+  opacity: 0.55; touch-action: none;
+}
+.nitro-btn.ready { opacity: 1; color: #eaf6ff; border-color: #33ccff; box-shadow: 0 0 18px rgba(51, 204, 255, .55); }
+.nitro-btn.active { background: rgba(51, 204, 255, .4); animation: pulse 0.35s infinite alternate; }
+#game-container.boosting::after {
+  content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  box-shadow: inset 0 0 90px 30px rgba(51, 180, 255, 0.35);
+}
+
+#menu-coins { margin-top: 10px; font-size: 16px; font-weight: 800; color: #ffd257; letter-spacing: 1px; }
+#mission-card {
+  margin: 12px 0 4px; padding: 10px 12px; border-radius: 12px; text-align: left;
+  background: rgba(0, 229, 255, 0.06); border: 1px solid rgba(0, 229, 255, 0.22);
+  display: grid; gap: 4px;
+}
+#mission-name { font-size: 13px; font-weight: 800; letter-spacing: 1px; color: #ffe14d; }
+#mission-desc { font-size: 12px; color: #9fb4d8; }
+.mission-bar { height: 8px; border-radius: 5px; background: rgba(255,255,255,.12); overflow: hidden; }
+#mission-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f5a623, #ffe27a); transition: width .3s; }
+#mission-progress { font-size: 11px; color: #9fb4d8; font-variant-numeric: tabular-nums; }
+.menu-row { display: flex; gap: 10px; margin-top: 4px; }
+.menu-row .ghost-btn { margin-top: 8px; }
+
+.overlay.garage {
+  background: linear-gradient(180deg, rgba(2,4,10,0) 0%, rgba(2,4,10,0) 34%, rgba(2,4,10,0.88) 46%);
+  backdrop-filter: blur(1px);
+  align-items: flex-end; padding: 12px;
+  /* Let drags on the open 3D area reach the canvas (car inspection);
+     the panel itself keeps its touches. */
+  pointer-events: none;
+}
+.overlay.garage .panel { pointer-events: auto; }
+.overlay.garage .garage-panel {
+  max-width: 360px;
+  /* Compact scrollable sheet: the showroom car keeps the top of the frame. */
+  max-height: 46%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#garage-coins { font-size: 18px; font-weight: 800; color: #ffd257; margin-bottom: 10px; }
+#paint-list { display: grid; gap: 8px; margin-bottom: 6px; }
+.paint-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(0,229,255,.18); border-radius: 12px;
+}
+.paint-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,.5); flex: none; }
+.paint-name { flex: 1; text-align: left; font-size: 14px; font-weight: 700; }
+.paint-btn {
+  padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 800;
+  border: 1px solid rgba(255, 210, 87, .5); color: #ffd257; background: transparent;
+}
+.paint-btn.select { border-color: rgba(0,229,255,.5); color: #9fd8ff; }
+.paint-btn.selected { border-color: rgba(80,255,150,.5); color: #7dffab; opacity: .8; }
+.paint-btn:active { transform: scale(.95); }
+
+/* Jump skill upgrade section (garage): same card language as paints. */
+#jump-upgrade {
+  margin-top: 10px; padding: 10px 12px 12px;
+  background: rgba(255, 225, 77, 0.05); border: 1px solid rgba(255, 210, 87, 0.3); border-radius: 12px;
+  display: grid; gap: 6px; justify-items: center;
+}
+.jump-title {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; font-weight: 900; letter-spacing: 1px; color: #ffe27a;
+}
+#jump-level { color: #9fd8ff; font-variant-numeric: tabular-nums; }
+#jump-info { font-size: 12px; color: #9fb4d8; font-variant-numeric: tabular-nums; }
+#btn-jump-up { min-width: 130px; }
+#btn-jump-up:disabled { opacity: 0.45; }
+#btn-jump-up.maxed { border-color: rgba(80,255,150,.5); color: #7dffab; opacity: .85; }
+#jump-msg { font-size: 12px; font-weight: 800; color: #7dffab; min-height: 15px; }
+#jump-msg.need { color: #ff8a8a; }
+#over-missions { flex-direction: column; gap: 4px; color: #ffe14d !important; font-size: 13px; font-weight: 700; }
+
+/* Power-up HUD badges (shield / 2x coins): pill row under the top stats. */
+#hud-badges {
+  position: absolute; top: calc(120px + env(safe-area-inset-top)); left: 10px; right: 10px;
+  display: flex; gap: 8px; justify-content: center; min-height: 0;
+}
+#hud-badges:empty { display: none; }
+.hud-badge {
+  padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 900;
+  letter-spacing: .5px; font-variant-numeric: tabular-nums;
+  background: rgba(0, 0, 0, .45); border: 1px solid;
+}
+.badge-shield { color: #7fd4ff; border-color: rgba(77, 184, 255, .7); text-shadow: 0 0 10px rgba(77, 184, 255, .8); }
+.badge-coin2x { color: #ffd257; border-color: rgba(255, 210, 87, .7); text-shadow: 0 0 10px rgba(255, 210, 87, .8); }
+
+/* Police chase banner: persistent countdown while pursued. */
+#chase-banner {
+  margin: 6px auto 0; width: fit-content; max-width: 92%;
+  padding: 5px 14px; border-radius: 10px; font-size: 14px; font-weight: 900;
+  letter-spacing: .5px; color: #fff; font-variant-numeric: tabular-nums;
+  background: rgba(120, 0, 0, .55); border: 1px solid rgba(255, 80, 80, .8);
+  text-shadow: 0 0 12px rgba(255, 60, 60, .9); animation: chaseblink 1s steps(2) infinite;
+}
+@keyframes chaseblink { 50% { background: rgba(0, 40, 120, .55); border-color: rgba(80, 140, 255, .8); } }
+
+/* Garage sub-sections + car rows reuse the paint-row language. */
+.garage-sub { font-size: 13px; letter-spacing: 2px; opacity: .75; margin: 10px 0 6px; }
+#car-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.car-swatch {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 17px; border-radius: 10px; background: rgba(255,255,255,.06);
+}
+
+/* ---------- Lobby + bottom sheets (garage / upgrades / settings) ---------- */
+.overlay.lobby, .overlay.sheet {
+  background: linear-gradient(180deg, rgba(2,4,10,0) 0%, rgba(2,4,10,0) 30%, rgba(2,4,10,0.88) 44%);
+  backdrop-filter: blur(1px);
+  align-items: flex-end; padding: 12px;
+}
+.lobby-panel, .sheet-panel { max-width: 360px; padding: 20px 18px 16px; }
+.overlay.sheet .sheet-panel { max-height: 92%; overflow-y: auto; overscroll-behavior: contain; }
+.lobby-panel .logo { font-size: 30px; }
+.lobby-panel .tagline { font-size: 11px; letter-spacing: 3px; }
+.play-btn { margin-top: 14px; padding: 17px; font-size: 20px; }
+.lobby-stats { display: flex; justify-content: space-between; align-items: center; margin: 10px 2px 0; }
+.lobby-stats p { font-size: 15px; font-weight: 800; }
+#menu-coins { color: #ffd257; }
+.hint-line { margin-top: 10px; font-size: 11px; letter-spacing: 1px; color: #8ea3c7; }
+/* Compact equal menu buttons with icons above labels. */
+.menu-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  margin-top: 10px; padding: 10px 4px; font-size: 12px; font-weight: 800; letter-spacing: 1px;
+  color: #9fd8ff; background: rgba(0,229,255,.06);
+  border: 1px solid rgba(0,229,255,.3); border-radius: 12px; cursor: pointer;
+  min-height: 62px;
+}
+.menu-btn:active { transform: scale(.95); background: rgba(0,229,255,.18); }
+.menu-ico { font-size: 22px; line-height: 1; }
+
+/* ---------- Upgrade cards ---------- */
+#upgrades-screen h1, #settings-screen h1 { font-size: 24px; letter-spacing: 3px; }
+#upgrades-coins { font-size: 18px; font-weight: 800; color: #ffd257; margin: 6px 0 10px; }
+#upgrades-list { display: flex; flex-direction: column; gap: 8px; }
+.up-card {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(0,229,255,.18);
+  border-radius: 12px; padding: 9px 12px; text-align: left;
+}
+.up-head { display: flex; align-items: center; gap: 8px; }
+.up-ico { font-size: 20px; }
+.up-name { flex: 1; font-size: 15px; font-weight: 800; }
+.up-level { font-size: 12px; font-weight: 800; color: #7dffab; font-variant-numeric: tabular-nums; }
+.up-dur { margin-top: 3px; font-size: 13px; color: #c4d6f5; font-variant-numeric: tabular-nums; }
+.up-dur b { color: #ffd257; }
+.up-sub { font-size: 12px; color: #8ea3c7; font-variant-numeric: tabular-nums; }
+.up-sub b { color: #ffd257; }
+.up-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 7px; }
+.up-price { font-size: 15px; font-weight: 800; color: #ffd257; }
+.up-btn { min-width: 118px; }
+.paint-btn.maxed { border-color: rgba(80,255,150,.5); color: #7dffab; opacity: .85; }
+.paint-btn.poor { opacity: .45; }
+.paint-btn:disabled { cursor: default; }
+
+/* ---------- Settings ---------- */
+.settings-row { display: flex; gap: 10px; }
+.settings-row .ghost-btn { margin-top: 0; }
+.ghost-btn.danger { border-color: rgba(255, 90, 90, .5); color: #ff8a8a; }
+.ghost-btn.armed {
+  border-color: #ff5d5d; color: #fff; background: rgba(255, 60, 60, .25);
+  animation: armpulse 1s ease-in-out infinite;
+}
+@keyframes armpulse { 50% { background: rgba(255, 60, 60, .45); } }
+#reset-note { font-size: 11px; color: #8ea3c7; line-height: 1.5; }
+
+/* Magnet HUD badge (same pill language as shield / 2x). */
+.badge-magnet { color: #ff8fa5; border-color: rgba(230, 57, 70, .7); text-shadow: 0 0 10px rgba(230, 57, 70, .8); }
+
+/* ---------- Brand intro (YF monogram reveal, ~2.4 s, tap to skip) ---------- */
+#intro-screen {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: #04060c; cursor: pointer;
+  transition: opacity .35s ease;
+}
+#intro-screen.intro-done { opacity: 0; pointer-events: none; }
+.intro-inner { text-align: center; padding: 0 32px; }
+#intro-logo { width: min(58vw, 230px); height: auto; opacity: 0; }
+.intro-word { margin-top: 18px; font-size: 20px; font-weight: 900; letter-spacing: 6px; color: #fff; opacity: 0; }
+.intro-sub { margin-top: 8px; font-size: 11px; letter-spacing: 4px; color: #7ddcff; opacity: 0; }
+/* Animations start only when JS adds .intro-run (first frame is ready). */
+.intro-run #intro-logo { animation: intro-reveal 1.5s cubic-bezier(.22,1,.36,1) .1s forwards; }
+.intro-run .intro-word { animation: intro-fade .7s ease .9s forwards; }
+.intro-run .intro-sub { animation: intro-fade .7s ease 1.15s forwards; }
+@keyframes intro-reveal {
+  from { opacity: 0; transform: scale(.92); clip-path: inset(0 0 100% 0); }
+  35% { opacity: 1; }
+  to { opacity: 1; transform: scale(1); clip-path: inset(0 0 0% 0); }
+}
+@keyframes intro-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Redesigned lobby chrome (minimal, 3D scene stays visible) ---------- */
+.overlay.lobby {
+  background: linear-gradient(180deg, rgba(2,4,10,.55) 0%, rgba(2,4,10,0) 22%, rgba(2,4,10,0) 62%, rgba(2,4,10,.72) 100%);
+  backdrop-filter: none;
+  flex-direction: column; align-items: stretch; justify-content: flex-start;
+  padding: 0; pointer-events: none;
+}
+.overlay.lobby button { pointer-events: auto; }
+.lobby-topbar {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top)) 10px 0;
+}
+.lobby-topbar .icon-btn { font-size: 20px; flex: none; }
+.lobby-chips { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
+#best-line {
+  margin: 0; font-size: 14px; font-weight: 900; letter-spacing: 2px; color: #ffe14d;
+  background: rgba(5,10,24,.62); border: 1px solid rgba(255,225,77,.35);
+  border-radius: 999px; padding: 7px 18px; backdrop-filter: blur(4px);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+#menu-coins {
+  margin: 0; font-size: 15px; font-weight: 800; color: #ffd257;
+  background: rgba(5,10,24,.62); border: 1px solid rgba(255,210,87,.3);
+  border-radius: 999px; padding: 5px 16px; backdrop-filter: blur(4px);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.lobby-word {
+  margin-top: 8px; text-align: center; font-size: 17px; font-weight: 900; letter-spacing: 3px;
+  color: #fff; text-shadow: 0 0 18px rgba(0,229,255,.7), 0 2px 4px #000;
+}
+.lobby-word span { color: #00e5ff; }
+.play-dock {
+  margin-top: auto; padding: 0 26px calc(22px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.play-dock .play-btn { margin: 0; width: 100%; max-width: 320px; padding: 17px; font-size: 20px; }
+.play-dock .hint-line { margin: 0; text-shadow: 0 1px 3px #000; }
+
+/* ---------- Side navigation drawer ---------- */
+#nav-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.5); pointer-events: auto; }
+#nav-drawer {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 236px;
+  background: linear-gradient(180deg, rgba(10,18,40,.97), rgba(6,10,26,.97));
+  border-right: 1px solid rgba(0,229,255,.3);
+  box-shadow: 20px 0 50px rgba(0,0,0,.5);
+  padding: calc(14px + env(safe-area-inset-top)) 14px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  transform: translateX(-105%); transition: transform .26s cubic-bezier(.22,1,.36,1);
+  pointer-events: auto;
+}
+#nav-drawer.open { transform: none; }
+.nav-head { display: flex; align-items: center; gap: 10px; padding: 4px 6px 12px;
+  border-bottom: 1px solid rgba(0,229,255,.2); margin-bottom: 4px; }
+.nav-logo { width: 34px; height: 34px; }
+.nav-head span { font-size: 17px; font-weight: 900; letter-spacing: 3px; color: #fff; }
+.nav-btn {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  font-size: 15px; font-weight: 800; letter-spacing: 2px; color: #9fd8ff;
+  background: rgba(0,229,255,.06); border: 1px solid rgba(0,229,255,.3);
+  border-radius: 12px; cursor: pointer; text-align: left;
+}
+.nav-btn:active { transform: scale(.97); background: rgba(0,229,255,.18); }
+.nav-btn .menu-ico { font-size: 22px; }
+
+/* ---------- Garage tabs + circular back buttons ---------- */
+.panel { position: relative; }
+.tab-bar { display: flex; gap: 8px; margin: 2px 0 4px; }
+.tab-btn {
+  flex: 1; padding: 10px; font-size: 13px; font-weight: 900; letter-spacing: 2px;
+  color: #8ea3c7; background: rgba(255,255,255,.04);
+  border: 1px solid rgba(0,229,255,.18); border-radius: 12px; cursor: pointer;
+}
+.tab-btn.active { color: #02131a; background: linear-gradient(180deg, #4df3ff, #00c8e5); border-color: transparent; }
+.back-circle {
+  position: absolute; top: 12px; left: 12px; width: 44px; height: 44px; border-radius: 50%;
+  font-size: 20px; line-height: 1; color: #9fd8ff;
+  background: rgba(5,10,24,.62); border: 1px solid rgba(0,229,255,.35); cursor: pointer;
+}
+.back-circle:active { transform: scale(.93); background: rgba(0,229,255,.25); }
+
+/* ---------- Missions screen ---------- */
+#missions-screen h1 { font-size: 24px; letter-spacing: 3px; }
+#missions-list { display: flex; flex-direction: column; gap: 8px; }
+.mission-row {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(0,229,255,.18);
+  border-radius: 12px; padding: 10px 12px; text-align: left; display: grid; gap: 5px;
+}
+.mission-row.done { border-color: rgba(80,255,150,.45); }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.mission-name { font-size: 14px; font-weight: 800; color: #ffe14d; }
+.mission-reward { font-size: 13px; font-weight: 800; color: #ffd257; white-space: nowrap; }
+.mission-desc { font-size: 12px; color: #9fb4d8; }
+.mission-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f5a623, #ffe27a); }
+.mission-progress { font-size: 11px; color: #9fb4d8; font-variant-numeric: tabular-nums; }
+.mission-row.done .mission-progress { color: #7dffab; font-weight: 800; }
+
+/* Short screens: keep PLAY reachable, drop decorative lines. */
+@media (max-height: 600px) {
+  .lobby-word { display: none; }
+  .play-dock { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .play-dock .hint-line { display: none; }
+  #best-line { font-size: 12px; padding: 5px 14px; }
+  #menu-coins { font-size: 13px; padding: 4px 12px; }
+}

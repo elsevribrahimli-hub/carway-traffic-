@@ -1,0 +1,27 @@
+{
+  "name": "carway-traffic",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test:logic": "node test/logic.test.mjs",
+    "test:browser": "node test/browser.test.mjs",
+    "test:features": "node test/browser-features.test.mjs",
+    "test:lobby": "node test/browser-lobby.test.mjs",
+    "test": "npm run test:logic && npm run test:browser",
+    "serve": "python3 -m http.server 8080 --bind 0.0.0.0",
+    "build:standalone": "node tools/standalone.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "playwright": "^1.64.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
